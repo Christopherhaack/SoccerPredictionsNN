@@ -53,7 +53,7 @@ def getPlayerStats(player_ids, home, date ):
             for item in playerStat:
                 s.append(item)
         except:
-            print(player, date, pDate[3])
+            pass
             
     return s
 
@@ -64,44 +64,53 @@ def getShotInfo(sInfo, team_id):
     '''
     cnt1 = 0
     cnt2 = 0
-    shotTree = ET.fromstring(sInfo)
-    for elem in shotTree:
-        #each shot is loaded as a set of elements and right now we only care about quantity
-        for item in elem:
-            if item.text == str(team_id):
-                cnt1 += 1
-            elif (item.text != str(team_id)) and (item.tag == 'team'):
-                cnt2 += 1
+    #some matches dont have this info.
+    try:
+        shotTree = ET.fromstring(sInfo)
+        for elem in shotTree:
+            #each shot is loaded as a set of elements and right now we only care about quantity
+            for item in elem:
+                if item.text == str(team_id):
+                    cnt1 += 1
+                elif (item.text != str(team_id)) and (item.tag == 'team'):
+                    cnt2 += 1
+    except:
+        pass
     return cnt1, cnt2
 
 def getPosInfo(pInfo, home):
     '''
     helper function to see posession break down of the game at halftime and at full time
     '''
-    posTree = ET.fromstring(pInfo)
     vals = [0, 0 ,0 ,0]
-    for elem in posTree:
-        for item in elem:
-            if item.tag == 'elapsed' and item.text == '90':
-                for i2 in elem:
-                    if i2.tag == 'homepos' and home:
-                        vals[2] = int(i2.text)
-                    elif i2.tag == 'homepos':
-                        vals[3] = int(i2.text)
-                    elif i2.tag == 'awaypos' and home == False:
-                        vals[2] = int(i2.text)
-                    elif i2.tag == 'awaypos' and home:
-                        vals[3] = int(i2.text)
-            elif item.tag == 'elapsed' and item.text == '45':
-                for i2 in elem:
-                    if i2.tag == 'homepos' and home:
-                        vals[0] = int(i2.text)
-                    elif i2.tag == 'homepos':
-                        vals[1] = int(i2.text)
-                    elif i2.tag == 'awaypos' and home == False:
-                        vals[0] = int(i2.text)
-                    elif i2.tag == 'awaypos' and home:
-                        vals[1] = int(i2.text)
+    #some matches dont have this info.
+    try:
+        posTree = ET.fromstring(pInfo)
+
+        for elem in posTree:
+            for item in elem:
+                if item.tag == 'elapsed' and item.text == '90':
+                    for i2 in elem:
+                        if i2.tag == 'homepos' and home:
+                            vals[2] = int(i2.text)
+                        elif i2.tag == 'homepos':
+                            vals[3] = int(i2.text)
+                        elif i2.tag == 'awaypos' and home == False:
+                            vals[2] = int(i2.text)
+                        elif i2.tag == 'awaypos' and home:
+                            vals[3] = int(i2.text)
+                elif item.tag == 'elapsed' and item.text == '45':
+                    for i2 in elem:
+                        if i2.tag == 'homepos' and home:
+                            vals[0] = int(i2.text)
+                        elif i2.tag == 'homepos':
+                            vals[1] = int(i2.text)
+                        elif i2.tag == 'awaypos' and home == False:
+                            vals[0] = int(i2.text)
+                        elif i2.tag == 'awaypos' and home:
+                            vals[1] = int(i2.text)
+    except:
+        pass
     return vals
 
 
@@ -155,12 +164,20 @@ def gamesMapping(team_id, games, normalize=False):
         performance = np.asarray(performance)    
         performance = StandardScaler().fit_transform(performance)
     return performance
-
-
+''' this is the class that will hold all the data'''
+class soccerInfo:
+    def __init__(self):
+        self.seasonData = self.generateSeason()
+    def generateSeason(self):
+        sVals = []
+        for i in range(2008, 2010):
+            s = str(i) + "/" + str(i + 1)
+            sTemp = season(season = s)
+            sVals.append(sTemp)
+        return sVals
 class season:
     ''' this is a class which will hold performances over a set of seasons'''
     def __init__(self, season = '2015/2016'):
-        season = '2015/2016'
         selectS = ''' select league_id from match '''
         whereS = ''' where season = ''' +  "\"" + season + "\"" 
         grouping = '''
@@ -171,6 +188,19 @@ class season:
         leagues = c.fetchall()
         self.leagues = leagues
         self.season = season
+        self.pVals = self.genInfo()
+    def genInfo(self):
+        pVals = []
+        print(self.season)
+        '''for lTemp in self.leagues:
+            league = lTemp[0]
+            print(league)
+            l = leagueSeason(league_id = league, season = self.season)
+            pVals.append(l)''' 
+        ''' normally i would do above, but this is being annoying today so only doing prem'''
+        l = leagueSeason(league_id = 1729, season = self.season)
+        pVals.append(l)
+        return pVals
 class leagueSeason:
     ''' this class will hold the information of a given leagues season'''
     def __init__(self, league_id = 1729, season = '2015/2016'):
