@@ -1,0 +1,9 @@
+here are some useful links
+http://colah.github.io/posts/2015-08-Understanding-LSTMs/ <- easy to understand lstm introduction
+I actually like all of these guys posts http://colah.github.io/ good reads.
+
+http://karpathy.github.io/2015/05/21/rnn-effectiveness/ <- paper on success of RNN (specifically LSTM architecture)
+
+http://www.yisongyue.com/courses/cs155/2017_winter/ <- cs 155 slides and info
+
+https://www.tensorflow.org/api_docs/ <- tensorflow api
