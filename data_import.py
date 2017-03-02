@@ -170,7 +170,7 @@ class soccerInfo:
         self.seasonData = self.generateSeason()
     def generateSeason(self):
         sVals = []
-        for i in range(2008, 2010):
+        for i in range(2008, 2016):
             s = str(i) + "/" + str(i + 1)
             sTemp = season(season = s)
             sVals.append(sTemp)
@@ -198,7 +198,7 @@ class season:
             l = leagueSeason(league_id = league, season = self.season)
             pVals.append(l)''' 
         ''' normally i would do above, but this is being annoying today so only doing prem'''
-        l = leagueSeason(league_id = 1729, season = self.season)
+        l = leagueSeason(league_id = 4769, season = self.season)
         pVals.append(l)
         return pVals
 class leagueSeason:
