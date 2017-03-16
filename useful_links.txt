@@ -7,3 +7,7 @@ http://karpathy.github.io/2015/05/21/rnn-effectiveness/ <- on success of RNN (sp
 http://www.yisongyue.com/courses/cs155/2017_winter/ <- cs 155 slides and info
 
 https://www.tensorflow.org/api_docs/ <- tensorflow api
+
+http://r2rt.com/recurrent-neural-networks-in-tensorflow-i.html <- reading and working through this to get my RNN to work in tf.
+
+
