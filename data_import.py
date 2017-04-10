@@ -23,31 +23,37 @@ def getPlayerStats(player_ids, home, date ):
     if home == False:
         temp = player_ids[11:] + player_ids[:11]
         player_ids = temp
-    
+    cnt = 0
     for player in player_ids:
-        
+        '''checks to see if a player is a goalkeeper'''
+        if cnt % 11 == 0:
+            gk = True
+        else:
+            gk = False
+        cnt +=1
         pS = []
         statement = '''select * from player_attributes where '''
         p_statement = ''' player_api_id = ''' + str(player)
         o_statement = ''' order by date'''
         #not an elegant solution at all deals with case where a player is loaded at none. Happens in very few matches so far as i can tell.
+        
+        statement += p_statement + o_statement
         try:
-            statement += p_statement + o_statement
             c.execute(statement) 
             temp = c.fetchall()
+        
             for pDate in temp:
                 #checks to get the stat for the player in the current season
-                if  dateutil.parser.parse(pDate[3]) <  dateutil.parser.parse(date):
-                    pS = pDate[4:]
-                    playerStat = []
-                    for item in pS:
-                        #only worry's about numeric fields. This throws out percieved work rates and dominant feet as these
-                        #are not seen as important factors right now
-                        if type(item) == type(1):
-                            playerStat.append(item)
                 if dateutil.parser.parse(pDate[3]) <  dateutil.parser.parse(date):
+                    pS = pDate[4:]
+                else:
+                    if gk:
+                        playerStat = getGkInfo(pS)
+                    else:
+                        playerStat = getPlayerInfo(pS)
                     break;
         except:
+            print(player, date)
             pass
         try:
             for item in playerStat:
@@ -56,8 +62,54 @@ def getPlayerStats(player_ids, home, date ):
             pass
             
     return s
-
-
+def getGkInfo(p):
+    
+    playerInfo = []
+    playerInfo.append(p[0]/100.)
+    playerInfo.append(p[1]/100.)
+    n = len(p)
+    p1 = p[n-5:]
+    for item in p1:
+        if type(item) == type(1):
+            val = item/ 100.
+            playerInfo.append(val)
+        else:
+            playerInfo.append(0)
+    return playerInfo
+    
+def getPlayerInfo(p):
+    ''' helper function to make a playerInfo object with correct normalized info'''
+    
+    n = len(p)
+    playerInfo = []
+    playerInfo.append(p[0]/100.)
+    playerInfo.append(p[1]/100.)
+    ''' adds vectors for preffered foot, attacking and def work rates'''
+    if p[2] == 'right':
+        playerInfo.append(0)
+    else:
+        playerInfo.append(1)
+    if p[3] == 'low':
+        playerInfo.append(0)
+    elif p[3] == 'high':
+        playerInfo.append(1)
+    else:
+        playerInfo.append(.5)
+    if p[4] == 'low':
+        playerInfo.append(0)
+    elif p[4] == 'high':
+        playerInfo.append(1)
+    else:
+        playerInfo.append(.5)
+    p1 = p[5:(n - 5)]
+    for item in p1:
+        if type(item) == type(1):
+            val = item/ 100.
+            playerInfo.append(val)
+        else:
+            playerInfo.append(0)
+    return playerInfo
+        
 def getShotInfo(sInfo, team_id):
     '''
     helper function to count how many shots each team has from an xml format
@@ -76,6 +128,8 @@ def getShotInfo(sInfo, team_id):
                     cnt2 += 1
     except:
         pass
+    cnt1 /= 50.
+    cnt2 /= 50.
     return cnt1, cnt2
 
 def getPosInfo(pInfo, home):
@@ -92,23 +146,23 @@ def getPosInfo(pInfo, home):
                 if item.tag == 'elapsed' and item.text == '90':
                     for i2 in elem:
                         if i2.tag == 'homepos' and home:
-                            vals[2] = int(i2.text)
+                            vals[2] = int(i2.text)/100.
                         elif i2.tag == 'homepos':
-                            vals[3] = int(i2.text)
+                            vals[3] = int(i2.text)/100.
                         elif i2.tag == 'awaypos' and home == False:
-                            vals[2] = int(i2.text)
+                            vals[2] = int(i2.text)/100.
                         elif i2.tag == 'awaypos' and home:
-                            vals[3] = int(i2.text)
+                            vals[3] = int(i2.text)/100.
                 elif item.tag == 'elapsed' and item.text == '45':
                     for i2 in elem:
                         if i2.tag == 'homepos' and home:
-                            vals[0] = int(i2.text)
+                            vals[0] = int(i2.text)/100.
                         elif i2.tag == 'homepos':
-                            vals[1] = int(i2.text)
+                            vals[1] = int(i2.text)/100.
                         elif i2.tag == 'awaypos' and home == False:
-                            vals[0] = int(i2.text)
+                            vals[0] = int(i2.text)/100.
                         elif i2.tag == 'awaypos' and home:
-                            vals[1] = int(i2.text)
+                            vals[1] = int(i2.text)/100.
     except:
         pass
     return vals
@@ -132,26 +186,29 @@ def gamesMapping(team_id, games, normalize=False):
             home = True
             p.append(game[8])
             if game[9] > game[10]:
-                p.append(3)
-            elif game[9] == game[10]:
                 p.append(1)
+            elif game[9] == game[10]:
+                p.append(1/3.)
             else:
                 p.append(0)
-            p.append(game[9])
-            p.append(game[10])
+            p.append(game[9]/10.)
+            p.append(game[10]/10.)
         else:
             home = False
             p.append(game[7])
             if game[9] > game[10]:
-                p.append(3)
-            elif game[9] == game[10]:
                 p.append(1)
+            elif game[9] == game[10]:
+                p.append(1/3.)
             else:
                 p.append(0)
-            p.append(game[10])
-            p.append(game[9])
+            p.append(game[10]/10.)
+            p.append(game[9]/10.)
         #these will give positions of players
-        p += game[12:55]
+        try:
+            p += [x / 11. for x in game[12:55]]
+        except:
+            p += [0 for x in game[12:55]]
         #these will give stats of players
         p += getPlayerStats(game[55:77], home, game[5])
         #parses info about shots on target and gives (shots on target, shots against)
@@ -160,9 +217,6 @@ def gamesMapping(team_id, games, normalize=False):
         p += getPosInfo(game[84], home)
          
         performance.append(p)
-    if normalize:
-        performance = np.asarray(performance)    
-        performance = StandardScaler().fit_transform(performance)
     return performance
 ''' this is the class that will hold all the data'''
 class soccerInfo:
@@ -192,13 +246,17 @@ class season:
     def genInfo(self):
         pVals = []
         print(self.season)
-        '''for lTemp in self.leagues:
+        '''
+        for lTemp in self.leagues:
             league = lTemp[0]
-            print(league)
-            l = leagueSeason(league_id = league, season = self.season)
-            pVals.append(l)''' 
+            try:
+                l = leagueSeason(league_id = league, season = self.season)
+                pVals.append(l)
+                print(league,season)
+            except:
+                print(league)'''  
         ''' normally i would do above, but this is being annoying today so only doing prem'''
-        l = leagueSeason(league_id = 4769, season = self.season)
+        l = leagueSeason(league_id = 1729, season = self.season)
         pVals.append(l)
         return pVals
 class leagueSeason:
