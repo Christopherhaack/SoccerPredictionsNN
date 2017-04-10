@@ -1,0 +1,21 @@
+here are some useful links
+http://colah.github.io/posts/2015-08-Understanding-LSTMs/ <- easy to understand lstm introduction
+I actually like all of these guys posts http://colah.github.io/ good reads.
+
+http://karpathy.github.io/2015/05/21/rnn-effectiveness/ <- on success of RNN (specifically LSTM architecture)
+
+http://www.yisongyue.com/courses/cs155/2017_winter/ <- cs 155 slides and info
+
+https://www.tensorflow.org/api_docs/ <- tensorflow api
+
+http://r2rt.com/recurrent-neural-networks-in-tensorflow-i.html <- reading and working through this to get my RNN to work in tf.
+https://fivethirtyeight.com/features/how-our-club-soccer-projections-work/ <-538 projections on soccer games and should
+
+
+
+more datasets to potentially use
+https://github.com/jalapic/engsoccerdata game results for many leagues spanning back from 1888 downsides not much detail in data. (might be good to see how a barebones prediction does relative to more advanced stuff with more features), i.e. how much does a teams previous results (just win/tie/loss and goals scored against) factor into future success.
+http://www.footytube.com/openfooty/ Most detailed sets including player quotes, but might not have as much data in terms of length of time. also its a live set. cant use this set under their liscensing agreement to do what i want.
+
+
+
