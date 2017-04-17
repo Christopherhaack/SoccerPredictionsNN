@@ -17,7 +17,8 @@ def getPlayerStats(player_ids, home, date ):
     @ return a list of player stats.
     '''
     s = []
-    
+    aPlayer = [0.71, 0.77, 0, 1, 0.5, 0.75, 0.66, 0.62, 0.74, 0.7, 0.73, 0.76, 0.77, 0.7, 0.73, 0.8, 0.82, 0.72, 0.72, 0.64, 0.83, 0.7, 0.85, 0.77, 0.67, 0.71, 0.62, 0.64, 0.68, 0.75, 0.68, 0.71, 0.68]
+    aKeeper = [0.75, 0.77, 0.75, 0.66, 0.8, 0.72, 0.81]
     margin = datetime.timedelta(days = 365)
     #always returns the teams players first for the data structure.
     if home == False:
@@ -41,25 +42,28 @@ def getPlayerStats(player_ids, home, date ):
         try:
             c.execute(statement) 
             temp = c.fetchall()
-        
+            
             for pDate in temp:
                 #checks to get the stat for the player in the current season
                 if dateutil.parser.parse(pDate[3]) <  dateutil.parser.parse(date):
                     pS = pDate[4:]
-                else:
                     if gk:
                         playerStat = getGkInfo(pS)
+                        
                     else:
                         playerStat = getPlayerInfo(pS)
+                else:
                     break;
         except:
-            print(player, date)
-            pass
-        try:
-            for item in playerStat:
-                s.append(item)
-        except:
-            pass
+            
+            if gk:
+                playerStat = aKeeper
+            else:
+                playerStat = aPlayer
+       
+        for item in playerStat:
+            s.append(item)
+
             
     return s
 def getGkInfo(p):
@@ -109,7 +113,31 @@ def getPlayerInfo(p):
         else:
             playerInfo.append(0)
     return playerInfo
-        
+def getCInfo(cInfo, team_id, corners):
+    '''
+    helper function to count how many crosses and corners each team has from an xml format
+    '''
+    cnt1 = 0
+    cnt2 = 0
+    #some matches dont have this info.
+    try:
+        cTree = ET.fromstring(cInfo)
+        for elem in cTree:
+            #each corner/cross is loaded as a set of elements and right now we only care about quantity
+            for item in elem:
+                if item.text == str(team_id):
+                    cnt1 += 1
+                elif (item.text != str(team_id)) and (item.tag == 'team'):
+                    cnt2 += 1
+    except:
+        pass
+    if corners:
+        cnt1 /= 20.
+        cnt2 /= 20.
+    else:
+        cnt1 /= 50.
+        cnt2 /= 50.
+    return cnt1, cnt2
 def getShotInfo(sInfo, team_id):
     '''
     helper function to count how many shots each team has from an xml format
@@ -214,6 +242,8 @@ def gamesMapping(team_id, games, normalize=False):
         #parses info about shots on target and gives (shots on target, shots against)
         p += getShotInfo(game[78], team_id)
         p += getShotInfo(game[79], team_id)
+        p += getCInfo(game[82], team_id, False)
+        p += getCInfo(game[83], team_id, True)
         p += getPosInfo(game[84], home)
          
         performance.append(p)
@@ -256,7 +286,7 @@ class season:
             except:
                 print(league)'''  
         ''' normally i would do above, but this is being annoying today so only doing prem'''
-        l = leagueSeason(league_id = 1729, season = self.season)
+        l = leagueSeason(league_id = 17642, season = self.season)
         pVals.append(l)
         return pVals
 class leagueSeason:
