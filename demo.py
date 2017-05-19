@@ -161,7 +161,7 @@ def demoSimText(bookie, preds, results, x):
         os.system('cls' if os.name == 'nt' else 'clear')
         game = x[i]
         bookiePred = bookie[i]
-        info(game, teamID, bookiePred)
+        info(game, teamID, bookiePred, hCash)
         b = -1
         bAmount = -1
         while b != 0 and b != 1 and b !=3:
@@ -202,10 +202,10 @@ def demoSimText(bookie, preds, results, x):
     plt.savefig('demoSim.jpg')
     plt.show()
 
-def info(game, teamID, bookie):
+def info(game, teamID, bookie, cash):
     homeTeam = teamID[game[0]]
     awayTeam = teamID[game[1]]
-    print(homeTeam + ' Vs. ' + awayTeam)
+    print(homeTeam + ' Vs. ' + awayTeam + ' Amount of cash in your pot: ' + str(cash) +'$')
     print('-' * 100)
     print('The home team is ' + homeTeam + ' and has average player rating ' + str(game[8]))
     for i in range(5):
